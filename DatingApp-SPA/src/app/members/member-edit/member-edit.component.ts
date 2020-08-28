@@ -1,4 +1,10 @@
-import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
@@ -7,14 +13,17 @@ import { AlertifyService } from '../../_services/alertify.service';
 import { User } from '../../_models/user';
 import { UserService } from '../../_services/user.service';
 import { AuthService } from '../../_services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-member-edit',
   templateUrl: './member-edit.component.html',
   styleUrls: ['./member-edit.component.css'],
 })
-export class MemberEditComponent implements OnInit {
+export class MemberEditComponent implements OnInit, OnDestroy {
   user: User;
+  photoUrl: string;
+  subscription: Subscription;
 
   @ViewChild('editForm', { static: true })
   editForm: NgForm;
@@ -38,6 +47,11 @@ export class MemberEditComponent implements OnInit {
     this.route.data.subscribe((data) => {
       this.user = data['user'];
     });
+    this.subscription = this.authService.currentPhotoUrl.subscribe(
+      (photoUrl) => {
+        this.photoUrl = photoUrl;
+      }
+    );
   }
 
   updateUser() {
@@ -52,5 +66,12 @@ export class MemberEditComponent implements OnInit {
           this.alertify.error(error);
         }
       );
+  }
+
+  updateMainPhoto(photoUrl) {
+    this.user.photoUrl = photoUrl;
+  }
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 }
